@@ -1,0 +1,67 @@
+version: "3"
+services:
+  web:
+    container_name: web
+    build: ./nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - .inputrc:/root/.inputrc
+      - ./public_html:/var/www/html
+      - ./private:/var/www/private/
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/my.cnf
+      - ./mysql/init.d:/docker-entrypoint-initdb.d
+      - /etc/letsencrypt:/etc/letsencrypt/
+    depends_on:
+      - app
+    networks:
+      - app-net
+    tty: true
+
+  app:
+    container_name: app
+    build: ./php
+    ports:
+      - 9000:9000
+    volumes:
+      - .inputrc:/root/.inputrc
+      - ./public_html:/var/www/html
+      - ./private:/var/www/private
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+    depends_on:
+      - mysql
+    networks:
+      - app-net
+    tty: true
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ROOTPASS}
+      MYSQL_DATABASE: ${DATABASE}
+      MYSQL_USER: ${USERNAME}
+      MYSQL_PASSWORD: ${USERPASS}
+      TZ: "Asia/Tokyo"
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - .inputrc:/root/.inputrc
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./mysql/init.d:/docker-entrypoint-initdb.d
+      - ./script:/script
+    expose:
+      - "3306"
+    ports:
+      - 3306:3306
+    restart: always
+    networks:
+      - app-net
+    tty: true
+
+networks:
+  app-net:
+    driver: bridge

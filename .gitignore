@@ -1,0 +1,10 @@
+#Ignore mysql data directory
+/mysql/data/*
+/mysql/init.d/restore/*
+
+#Ignore enviroment file for docker-compose.yml
+#.env
+
+#Ignore the archive directory and the working directory other than coding
+/.archives/*
+/.resource/*
